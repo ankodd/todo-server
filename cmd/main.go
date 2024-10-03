@@ -56,11 +56,11 @@ func main() {
 		IdleTimeout: s.IdleTimeout,
 	}
 
-	mux.Handle("/create", middleware.Middleware(Handler.Create(ctx)))
-	mux.Handle("/list", middleware.Middleware(Handler.FetchAll(ctx)))
-	mux.Handle("/update/", middleware.Middleware(Handler.Update(ctx)))
-	mux.Handle("/delete/", middleware.Middleware(Handler.Delete(ctx)))
-	mux.Handle("/count", middleware.Middleware(Handler.CountEntries(ctx)))
+	mux.Handle("/create", middleware.All(Handler.Create(ctx)))
+	mux.Handle("/list", middleware.All(Handler.FetchAll(ctx)))
+	mux.Handle("/update/", middleware.All(Handler.Update(ctx)))
+	mux.Handle("/delete/", middleware.All(Handler.Delete(ctx)))
+	mux.Handle("/count", middleware.All(Handler.CountEntries(ctx)))
 
 	// Start server
 	log.Printf("Server listening on %s\n", PORT)

@@ -44,14 +44,14 @@ func (s *Storage) FetchAll(ctx context.Context) ([]todo.Todo, error) {
 	var todos []todo.Todo
 
 	for rows.Next() {
-		var todo todo.Todo
+		var t todo.Todo
 
-		err := rows.Scan(&todo.ID, &todo.Name, &todo.Done)
+		err := rows.Scan(&t.ID, &t.Name, &t.Done)
 		if err != nil {
 			return nil, err
 		}
 
-		todos = append(todos, todo)
+		todos = append(todos, t)
 	}
 
 	return todos, nil
