@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"github.com/ankodd/todo-server/internal/handler"
+	"github.com/ankodd/todo-server/internal/metrics"
 	"github.com/ankodd/todo-server/internal/middleware"
-	"github.com/ankodd/todo-server/internal/storage"
+	"github.com/ankodd/todo-server/internal/storage/sqlite"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"net/http"
@@ -14,10 +15,16 @@ import (
 )
 
 func main() {
-	// Get port
-	PORT := ":8080"
-	if len(os.Args) != 1 {
-		PORT = ":" + os.Args[1]
+	// Get address for service
+	serviceAddr := ":8080"
+	if len(os.Args) > 2 {
+		serviceAddr = ":" + os.Args[1]
+	}
+
+	// Get address for metrics
+	metricsAddr := ":8082"
+	if len(os.Args) == 3 {
+		metricsAddr = ":" + os.Args[2]
 	}
 
 	// Initial storage
@@ -28,20 +35,21 @@ func main() {
 	}
 	defer db.Close()
 
+	// Test connection to storage
 	if err := db.Ping(); err != nil {
-		log.Fatalf("Ping: %v", err)
+		log.Fatalf("error pinging db: %v", err)
 	}
 
-	store, err := storage.New(db)
+	store, err := sqlite.New(db)
 	if err != nil {
-		log.Fatalf("storage.New: %v", err)
+		log.Fatalf("error initializing store: %v", err)
 	}
 	log.Printf("store initialized in %v", StoragePath)
 
 	// Initial server
 	mux := http.NewServeMux()
 	s := &http.Server{
-		Addr:         PORT,
+		Addr:         serviceAddr,
 		Handler:      mux,
 		IdleTimeout:  5 * time.Second,
 		ReadTimeout:  time.Second,
@@ -62,8 +70,17 @@ func main() {
 	mux.Handle("/delete/", middleware.All(Handler.Delete(ctx)))
 	mux.Handle("/count", middleware.All(Handler.CountEntries(ctx)))
 
+	// Start metrics
+	go func() {
+		log.Printf("Starting metrics on %s\n", metricsAddr)
+
+		if err := metrics.Listen(metricsAddr); err != nil {
+			log.Fatalf("error starting metrics: %v", err)
+		}
+	}()
+
 	// Start server
-	log.Printf("Server listening on %s\n", PORT)
+	log.Printf("Server listening on %s\n", serviceAddr)
 	err = s.ListenAndServe()
 	if err != nil {
 		log.Fatalf("ListenAndServe: %v", err)

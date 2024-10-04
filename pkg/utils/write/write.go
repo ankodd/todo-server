@@ -2,12 +2,13 @@ package write
 
 import (
 	"encoding/json"
-	"net/http"
+	"github.com/ankodd/todo-server/pkg/models/http/response"
 )
 
-func Write(obj interface{}, w http.ResponseWriter, status int) error {
-	w.WriteHeader(status)
-	err := json.NewEncoder(w).Encode(obj)
+func Write(response *response.Response) error {
+	response.Writer.WriteHeader(response.Status)
+
+	err := json.NewEncoder(response.Writer).Encode(response)
 	if err != nil {
 		return err
 	}
