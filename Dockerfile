@@ -15,6 +15,10 @@ RUN go mod tidy
 
 RUN go mod download
 
+RUN mkdir "storage"
+
+RUN mkdir "build"
+
 RUN go build -o ./build/main ./cmd/todo-service/main.go
 
 CMD ["./build/main"]
