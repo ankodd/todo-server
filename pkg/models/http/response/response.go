@@ -9,12 +9,24 @@ type Response struct {
 	Err    error               `json:"error,omitempty"`
 }
 
+type LogResponse struct {
+	Status int
+	Err    error
+}
+
 func New(object interface{}, status int, err error, w http.ResponseWriter) Response {
 	return Response{
 		Writer: w,
 		Data:   object,
 		Status: status,
 		Err:    err,
+	}
+}
+
+func (r *Response) Log() LogResponse {
+	return LogResponse{
+		Status: r.Status,
+		Err:    r.Err,
 	}
 }
 

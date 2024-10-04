@@ -62,6 +62,7 @@ func main() {
 	Handler := handler.Handler{
 		Storage:     store,
 		IdleTimeout: s.IdleTimeout,
+		Metrics:     metrics.NewMetrics(),
 	}
 
 	mux.Handle("/create", middleware.All(Handler.Create(ctx)))

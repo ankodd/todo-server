@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"github.com/ankodd/todo-server/internal/metrics"
 	"github.com/ankodd/todo-server/internal/storage/sqlite"
 	"github.com/ankodd/todo-server/pkg/models/http/response"
 	"github.com/ankodd/todo-server/pkg/models/todo"
@@ -17,11 +18,17 @@ type Handler struct {
 	Storage     *sqlite.Storage
 	IdleTimeout time.Duration
 	Response    response.Response
+	Metrics     *metrics.Metrics
 }
 
 func (h *Handler) Create(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		fn := "handler.Create"
+
 		start := time.Now()
+
+		ctx, cancel := context.WithTimeout(ctx, h.IdleTimeout)
+		defer cancel()
 
 		h.setResponse(response.New(
 			nil,
@@ -30,12 +37,15 @@ func (h *Handler) Create(ctx context.Context) http.HandlerFunc {
 		)
 
 		defer func() {
-			observeRequest(time.Since(start), h.Response.Status)
-		}()
+			h.Metrics.ObserveRequest(time.Since(start), h.Response.Status)
+			if h.Response.Err != nil {
+				h.Metrics.IncError()
+			}
 
-		fn := "handler.Create"
-		ctx, cancel := context.WithTimeout(ctx, h.IdleTimeout)
-		defer cancel()
+			h.Metrics.IncRequest()
+
+			log.Printf("%s: Response: %+v\n", fn, h.Response.Log())
+		}()
 
 		var out todo.Todo
 
@@ -70,20 +80,29 @@ func (h *Handler) Create(ctx context.Context) http.HandlerFunc {
 
 func (h *Handler) FetchAll(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		fn := "handler.FetchAll"
+
+		start := time.Now()
+
+		ctx, cancel := context.WithTimeout(ctx, h.IdleTimeout)
+		defer cancel()
+
 		h.setResponse(response.New(
 			nil,
 			http.StatusOK,
 			nil, w),
 		)
 
-		start := time.Now()
 		defer func() {
-			observeRequest(time.Since(start), h.Response.Status)
-		}()
+			h.Metrics.ObserveRequest(time.Since(start), h.Response.Status)
+			if h.Response.Err != nil {
+				h.Metrics.IncError()
+			}
 
-		fn := "handler.FetchAll"
-		ctx, cancel := context.WithTimeout(ctx, h.IdleTimeout)
-		defer cancel()
+			h.Metrics.IncRequest()
+
+			log.Printf("%s: Response: %+v\n", fn, h.Response.Log())
+		}()
 
 		todos, err := h.Storage.FetchAll(ctx)
 		h.Response.Data = &todos
@@ -110,20 +129,29 @@ func (h *Handler) FetchAll(ctx context.Context) http.HandlerFunc {
 
 func (h *Handler) Update(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		fn := "handler.Update"
+
+		start := time.Now()
+
+		ctx, cancel := context.WithTimeout(ctx, h.IdleTimeout)
+		defer cancel()
+
 		h.setResponse(response.New(
 			todo.Todo{},
 			http.StatusOK,
 			nil, w),
 		)
 
-		start := time.Now()
 		defer func() {
-			observeRequest(time.Since(start), h.Response.Status)
-		}()
+			h.Metrics.ObserveRequest(time.Since(start), h.Response.Status)
+			if h.Response.Err != nil {
+				h.Metrics.IncError()
+			}
 
-		fn := "handler.Update"
-		ctx, cancel := context.WithTimeout(ctx, h.IdleTimeout)
-		defer cancel()
+			h.Metrics.IncRequest()
+
+			log.Printf("%s: Response: %+v\n", fn, h.Response.Log())
+		}()
 
 		ID := r.URL.Query().Get("id")
 		id, err := strconv.ParseInt(ID, 10, 64)
@@ -166,20 +194,29 @@ func (h *Handler) Update(ctx context.Context) http.HandlerFunc {
 
 func (h *Handler) Delete(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		fn := "handler.Delete"
+
+		start := time.Now()
+
+		ctx, cancel := context.WithTimeout(ctx, h.IdleTimeout)
+		defer cancel()
+
 		h.setResponse(response.New(
 			nil,
 			http.StatusOK,
 			nil, w),
 		)
 
-		start := time.Now()
 		defer func() {
-			observeRequest(time.Since(start), h.Response.Status)
-		}()
+			h.Metrics.ObserveRequest(time.Since(start), h.Response.Status)
+			if h.Response.Err != nil {
+				h.Metrics.IncError()
+			}
 
-		fn := "handler.Delete"
-		ctx, cancel := context.WithTimeout(ctx, h.IdleTimeout)
-		defer cancel()
+			h.Metrics.IncRequest()
+
+			log.Printf("%s: Response: %+v\n", fn, h.Response.Log())
+		}()
 
 		ID := r.URL.Query().Get("id")
 		id, err := strconv.ParseInt(ID, 10, 64)
@@ -213,20 +250,29 @@ func (h *Handler) Delete(ctx context.Context) http.HandlerFunc {
 
 func (h *Handler) CountEntries(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		fn := "handler.CountEntries"
+
+		start := time.Now()
+
+		ctx, cancel := context.WithTimeout(ctx, h.IdleTimeout)
+		defer cancel()
+
 		h.setResponse(response.New(
 			nil,
 			http.StatusOK,
 			nil, w),
 		)
 
-		start := time.Now()
 		defer func() {
-			observeRequest(time.Since(start), h.Response.Status)
-		}()
+			h.Metrics.ObserveRequest(time.Since(start), h.Response.Status)
+			if h.Response.Err != nil {
+				h.Metrics.IncError()
+			}
 
-		fn := "handler.CountEntries"
-		ctx, cancel := context.WithTimeout(ctx, h.IdleTimeout)
-		defer cancel()
+			h.Metrics.IncRequest()
+
+			log.Printf("%s: Response: %+v\n", fn, h.Response.Log())
+		}()
 
 		cnt, err := h.Storage.CountEntries(ctx)
 		if err != nil {
