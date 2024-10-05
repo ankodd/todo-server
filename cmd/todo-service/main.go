@@ -27,7 +27,7 @@ func main() {
 		metricsAddr = ":" + os.Args[2]
 	}
 
-	// Initial storage
+	// Initial sqlite3 database
 	const StoragePath = "storage/storage.db"
 	db, err := sql.Open("sqlite3", StoragePath)
 	if err != nil {

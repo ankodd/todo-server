@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/ankodd/todo-server/internal/metrics"
-	"github.com/ankodd/todo-server/internal/storage/sqlite"
+	"github.com/ankodd/todo-server/internal/storage"
 	"github.com/ankodd/todo-server/pkg/models/http/response"
 	"github.com/ankodd/todo-server/pkg/models/todo"
 	"github.com/ankodd/todo-server/pkg/utils/write"
@@ -15,7 +15,7 @@ import (
 )
 
 type Handler struct {
-	Storage     *sqlite.Storage
+	Storage     storage.Storage
 	IdleTimeout time.Duration
 	Response    response.Response
 	Metrics     *metrics.Metrics
